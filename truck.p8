@@ -2,8 +2,16 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 function _init()
+poke(0x5F2D, 1) -- mouse active
+
 music()
 	⧗=0
+
+	mouse = {
+		x = 0,
+		y = 0
+	}
+
 	truck={
 	x=50,
 	y=100,
@@ -18,7 +26,6 @@ music()
 	rt={x=0,y=0},
 	lb={x=0,y=0},
 	rb={x=0,y=0},
-
 	}
 drag =0.99
 	puffs={}
@@ -81,9 +88,15 @@ function _update60()
 	⧗+=1
 	camera(cam.x, cam.y)
 	truck.a =truck.a%1
+
+	-- cam
 	cam.y= lerp(truck.y-64, cam.y, 0.95)
 	cam.x= lerp(truck.x-64, cam.x, 0.95)
 	
+	-- mousex
+	mouse.x = stat(32) 
+	mouse.y = stat(33) 
+
 		-- collisions
 	for h in all(houses) do
 		h.housea=1-atan2(truck.x-h.x,truck.y-h.y)
@@ -210,6 +223,8 @@ end
 function _draw()
  cls(6)
  map()
+
+ 
 -- drawpuffs()
  print(truck.hit)
 	print(truck.housea)
