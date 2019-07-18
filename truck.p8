@@ -221,48 +221,49 @@ function _update60()
 end
 
 function _draw()
- cls(6)
- map()
+ 	cls(6)
+ 	map()
 
 -- drawpuffs()
  
 	 spr_r(0,truck.x-8,truck.y-8,truck.a*360,2,2)
- spr_r(2,truck.x-8-1*truck.lmultx
- ,truck.y-8-1*truck.lmulty,truck.a*360,2,2)
- spr_r(4,truck.x-8-3*truck.lmultx
- ,truck.y-8-3*truck.lmulty,truck.a*360,2,2)
- spr_r(16,truck.x-8-4*truck.lmultx
- ,truck.y-8-4*truck.lmulty,truck.a*360,2,2)
+ 	spr_r(2,truck.x-8-1*truck.lmultx
+ 	,truck.y-8-1*truck.lmulty,truck.a*360,2,2)
+ 	spr_r(4,truck.x-8-3*truck.lmultx
+ 	,truck.y-8-3*truck.lmulty,truck.a*360,2,2)
+ 	spr_r(16,truck.x-8-4*truck.lmultx
+ 	,truck.y-8-4*truck.lmulty,truck.a*360,2,2)
  --circfill(truck.x,truck.y-1,5,0)
 
-
+	
  
  
 
  
  
- treedraw()
+ 	treedraw()
 
 --	pset(truck.x,truck.y)
 	 
- for house in all(houses) do
- 	layerdraw(house.x,house.y,house.layers)
+ 	for house in all(houses) do
+ 		layerdraw(house.x,house.y,house.layers)
 	-- 	line(house.left,house.top,house.left,house.bottom,11)
 	--	line(house.right,house.top,house.right,house.bottom,11)
 	---	line(house.right,house.top,house.left,house.top,11)
 	---	line(house.right,house.bottom,house.left,house.bottom,11)
- end
- 
+ 	end
+	 building(0,0,20,20,8)
+	 building(0,40,20,60,8)
 -- pset(truck.lt.x,truck.lt.y,11)
 -- pset(truck.rt.x,truck.rt.y,11)
 -- pset(truck.lb.x,truck.lb.y,11)
 -- pset(truck.rb.x,truck.rb.y,11)
  
- print(truck.a,truck.x+10,truck.y+10,7)
+ 	print(truck.a,truck.x+10,truck.y+10,7)
 
- -- Mouse and spray
- spr(192, mouse.x, mouse.y)
- draw_update_spray()
+ 	-- Mouse and spray
+ 	spr(192, mouse.x, mouse.y)
+ 	draw_update_spray()
 end
 
 function spr_r(s,x,y,a,w,h)
@@ -305,8 +306,13 @@ function building(x1,y1,x2,y2,n)
 	local lmulty=0.25+(1-((y1-cam.y)/128))
 	local lmultx=-1*(x1-cam.x-64)/64
 	for i = 1, n do 
-		rectfill(x1-(i - 1)*lmultx,y1-(i - 1)*lmulty,x2-(i - 1)*lmultx,y2-(i - 1)*lmulty,5)
+		local c= 5
+		if i == n or i ==1 then
+		c=13
+		end
+		rectfill(x1-(i - 1)*lmultx,y1-(i - 1)*lmulty,x2-(i - 1)*lmultx,y2-(i - 1)*lmulty,c)
 		
+
 	end
 
 end
