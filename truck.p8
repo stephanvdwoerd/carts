@@ -2,8 +2,16 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 function _init()
+poke(0x5F2D, 1) -- mouse active
+
 music()
 	⧗=0
+
+	mouse = {
+		x = 0,
+		y = 0
+	}
+
 	truck={
 	x=50,
 	y=100,
@@ -18,7 +26,6 @@ music()
 	rt={x=0,y=0},
 	lb={x=0,y=0},
 	rb={x=0,y=0},
-
 	}
 drag =0.99
 	puffs={}
@@ -81,9 +88,15 @@ function _update60()
 	⧗+=1
 	camera(cam.x, cam.y)
 	truck.a =truck.a%1
+
+	-- cam
 	cam.y= lerp(truck.y-64, cam.y, 0.95)
 	cam.x= lerp(truck.x-64, cam.x, 0.95)
 	
+	-- mousex
+	mouse.x = cam.x + stat(32) 
+	mouse.y = cam.y + stat(33) 
+
 		-- collisions
 	for h in all(houses) do
 		h.housea=1-atan2(truck.x-h.x,truck.y-h.y)
@@ -210,6 +223,8 @@ end
 function _draw()
  cls(6)
  map()
+
+ spr(0, mouse.x, mouse.y)
 -- drawpuffs()
  
 	 spr_r(0,truck.x-8,truck.y-8,truck.a*360,2,2)
@@ -341,6 +356,34 @@ end
 
 -->8
 --particless
+
+spray = {}
+
+
+function draw_update_spray()
+	if (rnd() > 0.5) and stat(34) then
+		local a = atan2 (turret.mx-mouse.x,turret.my-mouse.y)-0.25
+		local vx = cos(atan2(truck.x-mouse.x,truck.y-mouse.y))
+		local vy = sin(atan2(truck.x-mouse.x,truck.y-mouse.y))
+
+		add(spray, {
+			x = truck.x,
+			y = truck.y,
+			a = truck.a,
+			vx = vx,
+			vy = vy,
+			tleft = 60
+		})
+	end
+
+	for drop in all(spray) do
+		tleft -= 1
+	end
+end
+
+
+
+
 function makepuff(x1,y1)
 	add(puffs,{
 		x=x1,
