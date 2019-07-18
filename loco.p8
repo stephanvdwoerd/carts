@@ -89,6 +89,8 @@ end
 
 
 
+
+
 function _draw()
 	cls(3)
 	map()

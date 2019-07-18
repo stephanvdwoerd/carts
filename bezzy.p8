@@ -17,6 +17,11 @@ function _init()
  t=0
 end
 
+
+
+
+
+
 function lv(v1,v2,t)
     return (1-t)*v1+t*v2
 end
@@ -25,6 +30,7 @@ end
 function qbcvector(v1,v2,v3,t) 
     return  lv(lv(v1,v3,t), lv(v3,v2,t),t)
 end
+
 
 --draw bezier curve
 
