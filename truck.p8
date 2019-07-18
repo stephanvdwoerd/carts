@@ -236,65 +236,21 @@ function _draw()
  ,truck.y-8-4*truck.lmulty,truck.a*360,2,2)
  --circfill(truck.x,truck.y-1,5,0)
 
- --trees
- for t in all (trees) do
- 	
-	 
-	 local	lmulty=0.3+(1-((t.y-cam.y)/128))
-		local lmultx=-1*(t.x-cam.x-64)/64
- 	
- 	circfill(t.x,t.y,1,4)	
- 	circfill(t.x-1*lmultx,t.y-1*lmulty,1,4)
- 	circfill(t.x-2*lmultx,t.y-2*lmulty,1,4)
-	 circfill(t.x-3*lmultx,t.y-3*lmulty,1,4)
-  circfill(t.x-4*lmultx,t.y-4*lmulty,1,4)
-  circfill(t.x-5*lmultx-1,t.y-5*lmulty+0.5,2,11)
-  
-  pset(t.x-t.r*3-8*lmultx,t.y-t.r*3-8*lmulty,11)
- 	pset(t.x-t.r1*3-8*lmultx,t.y-t.r1*3-8*lmulty,11)
- 	pset(t.x-t.r2*3-8*lmultx,t.y-t.r2*3-8*lmulty,11)
-  
-  circfill(t.x-6*lmultx,t.y-6*lmulty,4,3)
-  pset(t.x-t.r*3-7*lmultx,t.y+t.r*3-7*lmulty,11)
- 	pset(t.x+t.r1*3-7*lmultx,t.y+t.r1*3-7*lmulty,11)
- 	pset(t.x+t.r2*3-7*lmultx,t.y-t.r2*3-7*lmulty,11)
-  
+
  
-  circfill(t.x-7*lmultx,t.y-7*lmulty,2,11)	
- 	pset(t.x-t.r-8*lmultx,t.y+t.r-8*lmulty,3)
- 	pset(t.x+t.r1-8*lmultx,t.y+t.r1-8*lmulty,3)
- 	pset(t.x+t.r2-8*lmultx,t.y-t.r2-8*lmulty,3)
- 	
- --	collision
-	 local dist1 = 0
- 	t.treea=1-atan2(truck.x-t.x,truck.y-t.y)
-		t.treea-=0.25
-		t.treea=t.treea%1
-		
-			dist1 = dist(t.x,t.y,truck.x,truck.y)
-			dist1 = dist(t.x,t.y,truck.x,truck.y)
-		
-	--	if dist < 0 then dist = 200 end
-		--print(dist1)
-		if dist1 <5 then
-			truck.spd *=-1
-		end
-		
- 	
- end
  
 
  
  
- --
+ treedraw()
 
 --	pset(truck.x,truck.y)
 	 
  for house in all(houses) do
  	layerdraw(house.x,house.y,house.layers)
--- 	line(house.left,house.top,house.left,house.bottom,11)
+	-- 	line(house.left,house.top,house.left,house.bottom,11)
 	--	line(house.right,house.top,house.right,house.bottom,11)
----		line(house.right,house.top,house.left,house.top,11)
+	---	line(house.right,house.top,house.left,house.top,11)
 	---	line(house.right,house.bottom,house.left,house.bottom,11)
  end
  
@@ -335,15 +291,67 @@ end
 function layerdraw(x1,y1,layers)
 --truck.lmulty=0.3+(((1-truck.y-cam.y)/128)*0.75)
 	local cambottom = cam.y+128
-	local	lmulty=0.25+(1-((y1-cam.y)/128))
+	local lmulty=0.25+(1-((y1-cam.y)/128))
 	local lmultx=-1*(x1-cam.x-64)/64
 	for i, l in pairs(layers) do
 		spr(l,x1-8-(i - 1)*lmultx,y1-8-(i - 1)*lmulty,2,2)
 	end
 	--print(lmulty)
 end
+function building(x1,y1,x2,y2,n)
+	local lmulty=0.25+(1-((y1-cam.y)/128))
+	local lmultx=-1*(x1-cam.x-64)/64
+	for i = 1, n do 
+		rectfill(x1-(i - 1)*lmultx,y1-(i - 1)*lmulty,x2-(i - 1)*lmultx,y2-(i - 1)*lmulty,5)
+		
+	end
 
-
+end
+function treedraw()
+	for t in all (trees) do
+ 	
+	 
+	 	local	lmulty=0.3+(1-((t.y-cam.y)/128))
+		local lmultx=-1*(t.x-cam.x-64)/64
+ 	
+ 		circfill(t.x,t.y,1,4)	
+ 		circfill(t.x-1*lmultx,t.y-1*lmulty,1,4)
+ 		circfill(t.x-2*lmultx,t.y-2*lmulty,1,4)
+	 	circfill(t.x-3*lmultx,t.y-3*lmulty,1,4)
+  		circfill(t.x-4*lmultx,t.y-4*lmulty,1,4)
+  		circfill(t.x-5*lmultx-1,t.y-5*lmulty+0.5,2,11)
+  
+  		pset(t.x-t.r*3-8*lmultx,t.y-t.r*3-8*lmulty,11)
+ 		pset(t.x-t.r1*3-8*lmultx,t.y-t.r1*3-8*lmulty,11)
+ 		pset(t.x-t.r2*3-8*lmultx,t.y-t.r2*3-8*lmulty,11)
+  
+  		circfill(t.x-6*lmultx,t.y-6*lmulty,4,3)
+  		pset(t.x-t.r*3-7*lmultx,t.y+t.r*3-7*lmulty,11)
+ 		pset(t.x+t.r1*3-7*lmultx,t.y+t.r1*3-7*lmulty,11)
+ 		pset(t.x+t.r2*3-7*lmultx,t.y-t.r2*3-7*lmulty,11)
+  
+ 
+ 	 	circfill(t.x-7*lmultx,t.y-7*lmulty,2,11)	
+ 		pset(t.x-t.r-8*lmultx,t.y+t.r-8*lmulty,3)
+ 		pset(t.x+t.r1-8*lmultx,t.y+t.r1-8*lmulty,3)
+ 		pset(t.x+t.r2-8*lmultx,t.y-t.r2-8*lmulty,3)
+ 	
+ --	collision
+	 	local dist1 = 0
+ 		t.treea=1-atan2(truck.x-t.x,truck.y-t.y)
+		t.treea-=0.25
+		t.treea=t.treea%1
+		
+			dist1 = dist(t.x,t.y,truck.x,truck.y)
+			dist1 = dist(t.x,t.y,truck.x,truck.y)
+		
+	--	if dist < 0 then dist = 200 end
+		--print(dist1)
+		if dist1 <5 then
+			truck.spd *=-1
+		end
+	end	
+end
 function lines_overlapping(min1,max1,min2,max2)
 	return max1>min2 and max2>min1
 end
