@@ -375,7 +375,7 @@ end
 --particless
 
 spray = {}
-
+splashes = {}
 
 function draw_update_spray()
 	if (rnd() > 0.5) and stat(34) != 0 then
@@ -392,7 +392,8 @@ function draw_update_spray()
 			tx = mouse.x,
 			ty = mouse.y,
 			vy = vy + rnd(0.1) - 0.05,
-			tleft = 60
+			tleft = 60,
+			c = rnd() > 0.95 and 7 or 12
 		})
 	end
 
@@ -400,10 +401,25 @@ function draw_update_spray()
 		drop.tleft -= 1
 		drop.x += drop.vx
 		drop.y += drop.vy
-		pset(drop.x,drop.y, 12)
+		pset(drop.x,drop.y, drop.c)
 		if drop.tleft <= 0 or dist(drop.x, drop.y, drop.tx, drop.ty) < 5then 
 			del(spray, drop)
+			add(splashes, {
+				x = drop.x,
+				y = drop.y,
+				r = 2,
+				c = drop.c
+			})
 		end
+	end
+
+	for splash in all(splashes) do
+		splash.r += .01
+		circ(splash.x,splash.y,splash.r,splash.c)
+
+		if splash.r > 4 then 
+			del(splashes, splash)
+		end	
 	end
 end
 
