@@ -94,8 +94,8 @@ function _update60()
 	cam.x= lerp(truck.x-64, cam.x, 0.95)
 	
 	-- mousex
-	mouse.x = stat(32) 
-	mouse.y = stat(33) 
+	mouse.x = cam.x + stat(32) 
+	mouse.y = cam.y + stat(33) 
 
 		-- collisions
 	for h in all(houses) do
@@ -224,7 +224,7 @@ function _draw()
  cls(6)
  map()
 
- 
+ spr(0, mouse.x, mouse.y)
 -- drawpuffs()
  
 	 spr_r(0,truck.x-8,truck.y-8,truck.a*360,2,2)
@@ -356,6 +356,34 @@ end
 
 -->8
 --particless
+
+spray = {}
+
+
+function draw_update_spray()
+	if (rnd() > 0.5) and stat(34) then
+		local a = atan2 (turret.mx-mouse.x,turret.my-mouse.y)-0.25
+		local vx = cos(atan2(truck.x-mouse.x,truck.y-mouse.y))
+		local vy = sin(atan2(truck.x-mouse.x,truck.y-mouse.y))
+
+		add(spray, {
+			x = truck.x,
+			y = truck.y,
+			a = truck.a,
+			vx = vx,
+			vy = vy,
+			tleft = 60
+		})
+	end
+
+	for drop in all(spray) do
+		tleft -= 1
+	end
+end
+
+
+
+
 function makepuff(x1,y1)
 	add(puffs,{
 		x=x1,
