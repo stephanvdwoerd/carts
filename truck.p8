@@ -224,6 +224,7 @@ function _draw()
  	cls(6)
  	map()
 
+	draw_update_splashes()
 -- drawpuffs()
  
 	 spr_r(0,truck.x-8,truck.y-8,truck.a*360,2,2)
@@ -413,18 +414,26 @@ function draw_update_spray()
 		end
 	end
 
-	for splash in all(splashes) do
-		splash.r += .01
-		circ(splash.x,splash.y,splash.r,splash.c)
-
-		if splash.r > 4 then 
-			del(splashes, splash)
-		end	
-	end
 end
 
 
+function draw_update_splashes()
+	for splash in all(splashes) do
+		splash.r += .01
 
+	
+		if splash.r < 3.9 then
+			circfill(splash.x,splash.y,splash.r,splash.c)
+		else 
+			circ(splash.x,splash.y,splash.r,splash.c)
+		end
+
+		if splash.r >= 4 then 
+			del(splashes, splash)
+		end	
+	end
+
+end
 
 function makepuff(x1,y1)
 	add(puffs,{
