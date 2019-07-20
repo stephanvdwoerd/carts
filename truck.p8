@@ -13,31 +13,37 @@ music()
 	}
 
 	truck={
-	x=50,
-	y=100,
-	a=0,
-	vx=0,
-	vy=0,
-	spd=0,
-	acc=0.01,
-	lmultx=0,
-	lmulty=1,
-	lt={x=0,y=0},
-	rt={x=0,y=0},
-	lb={x=0,y=0},
-	rb={x=0,y=0},
+		x=50,
+		y=100,
+		a=0,
+		vx=0,
+		vy=0,
+		spd=0,
+		acc=0.01,
+		lmultx=0,
+		lmulty=1,
+		lt={x=0,y=0},
+		rt={x=0,y=0},
+		lb={x=0,y=0},
+		rb={x=0,y=0},
 	}
-drag =0.99
+
+	hose={
+		x = truck.x,
+		y = truck.y
+	}
+	
+	drag =0.99
 	puffs={}
 
-houses = {}
+	houses = {}
 
-trees ={}
+	trees ={}
 
-cam = {
-x = 0,
-y = 0
-}
+	cam = {
+		x = 0,
+		y = 0
+	}
 
 
 hdist =30
@@ -96,6 +102,12 @@ function _update60()
 	-- mousex
 	mouse.x = cam.x + stat(32) 
 	mouse.y = cam.y + stat(33) 
+
+
+	-- turret
+	hose.a = atan2(truck.x-mouse.x,truck.y-mouse.y) -0.5
+	hose.x = truck.x
+	hose.y = truck.y
 
 		-- collisions
 	for h in all(houses) do
@@ -264,7 +276,21 @@ function _draw()
 
  	-- Mouse and spray
  	spr(192, mouse.x, mouse.y)
- 	draw_update_spray()
+	 draw_update_spray()
+	 
+	--  Hose
+	draw_hose()
+end
+
+function draw_hose()
+	hose.x = (truck.lt.x + truck.rt.x + truck.rb.x + truck.lb.x) / 4 + -4*truck.lmultx
+	hose.y = (truck.lt.y + truck.rt.y + truck.rb.y + truck.lb.y) / 4 + -4*truck.lmulty
+	hose.endx = hose.x + cos(hose.a) * 5
+	hose.endy = hose.y + sin(hose.a) * 5
+	line(hose.x, hose.y, hose.endx, hose.endy, 1)
+	pset(hose.endx, hose.endy, 2)
+	pset(hose.x, hose.y, 14)
+
 end
 
 function spr_r(s,x,y,a,w,h)
@@ -295,7 +321,6 @@ end
 
 function layerdraw(x1,y1,layers)
 --truck.lmulty=0.3+(((1-truck.y-cam.y)/128)*0.75)
-	local cambottom = cam.y+128
 	local lmulty=0.25+(1-((y1-cam.y)/128))
 	local lmultx=-1*(x1-cam.x-64)/64
 	for i, l in pairs(layers) do
@@ -380,14 +405,13 @@ splashes = {}
 
 function draw_update_spray()
 	if (rnd() > 0.5) and stat(34) != 0 then
-		local a = atan2(truck.x-mouse.x,truck.y-mouse.y) -0.5
-		local vx = cos(a)
-		local vy = sin(a)
+		local vx = cos(hose.a)
+		local vy = sin(hose.a)
 		print(a, cam.x, cam.y, 1)
 
 		add(spray, {
-			x = truck.x,
-			y = truck.y,
+			x = hose.endx,
+			y = hose.endy,
 			a = truck.a,
 			vx = vx + rnd(0.1) - 0.05,
 			tx = mouse.x,
@@ -421,11 +445,14 @@ function draw_update_splashes()
 	for splash in all(splashes) do
 		splash.r += .01
 
-	
-		if splash.r < 3.9 then
-			circfill(splash.x,splash.y,splash.r,splash.c)
+		if splash.c == 7 then
+			pset(splash.x,splash.y,splash.c)
 		else 
-			circ(splash.x,splash.y,splash.r,splash.c)
+			if splash.r < 3.9 then
+				circfill(splash.x,splash.y,splash.r,splash.c)
+			else 
+				circ(splash.x,splash.y,splash.r,splash.c)
+			end
 		end
 
 		if splash.r >= 4 then 
