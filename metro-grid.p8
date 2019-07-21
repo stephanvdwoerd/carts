@@ -9,7 +9,7 @@ cam = {
     tx = 0,
     ty = 0,
     spd = 2,
-    margin = 10
+    margin = 0
 }
 
 mouse = {
@@ -17,6 +17,7 @@ mouse = {
     y = 0,
     lastx = 0,
     lasty = 0,
+    drag_start_square = nil,
     pressed = false
 }
 
@@ -57,12 +58,14 @@ end
 
 
 function draw_grid()
+    local hovering_square
+
     for point in all(grid) do
         -- in rect, using >= to include the first pixel as well
-        local hover =  mouse.x >= point.x and mouse.x < point.x + 10
-                       and mouse.y >= point.y and mouse.y < point.y + 10
+        local hover = mouse_in_square(point)
 
         if hover then 
+            hovering_square = point
             rectfill(point.x,point.y,point.x+squaresize,point.y+squaresize,1)
         else 
             pset(point.x,point.y, 1)
@@ -70,7 +73,20 @@ function draw_grid()
     end
 
     -- border of grid
-    rect(grid[1].x,grid[1].y, grid[#grid -1].x, grid[#grid-1].y,5)
+    rect(grid[1].x,grid[1].y, grid[#grid -1].x + squaresize, grid[#grid-1].y + squaresize,5)
+
+    -- new sequencer
+    if mouse.drag_start_square then
+        rect(mouse.drag_start_square.x,mouse.drag_start_square.y,
+                 hovering_square.x + squaresize, hovering_square.y + squaresize, 6)
+        
+    end
+end
+
+
+function mouse_in_square(square)
+    return mouse.x >= square.x and mouse.x < square.x + squaresize
+           and mouse.y >= square.y and mouse.y < square.y + squaresize
 end
 
 
@@ -80,7 +96,20 @@ function update_mouse()
     mouse.lasty = mouse.y
     mouse.x = stat(32) + cam.x
     mouse.y = stat(33) + cam.y
+    mouse.just_pressed = (not mouse.pressed) and (stat(34) == 1)
     mouse.pressed = stat(34) == 1
+
+    if mouse.just_pressed then
+        for square in all(grid) do
+            if mouse_in_square(square) then
+                mouse.drag_start_square = square
+            end
+        end
+    end
+
+    if not mouse.pressed then
+        mouse.drag_start_square = nil
+    end
 end
 
 
@@ -112,7 +141,8 @@ function update_cam()
     cam.y = lerp(cam.ty, cam.y, 0.9)
    
     camera(cam.x, cam.y)
-   end
+end
+
 
 
 
