@@ -104,10 +104,13 @@ function _update60()
 	mouse.y = cam.y + stat(33) 
 
 
-	-- turret
+	-- hose
 	hose.a = atan2(truck.x-mouse.x,truck.y-mouse.y) -0.5
 	hose.x = truck.x
 	hose.y = truck.y
+
+	-- fire 
+	update_fire()
 
 		-- collisions
 	for h in all(houses) do
@@ -225,12 +228,9 @@ function _update60()
 	if btn(⬅️) then
 		truck.a-=0.01
 	end
-	
-	
-
-	
-	
 end
+
+
 
 function _draw()
  	cls(6)
@@ -476,6 +476,15 @@ function makepuff(x1,y1)
 	
 	})
 end
+
+function update_fire()
+	
+end
+
+function draw_fire()
+	
+end
+
 
 function drawpuffs()
 	
