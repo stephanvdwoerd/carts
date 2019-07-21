@@ -70,16 +70,22 @@ end
 
 function _draw()
 	cls()
-	drawgrid(20,20,5)
+	drawgrid(20,20,5,20,20)
 	spr(0,mouse.x-1,mouse.y-1)
 	print(mouse.ispressed)
 	
 end
+
+function drawbuttons(x,y,w,h)
+
+
+
+end
+
+
 --w is with of each block
 --h is height off each block
-function drawgrid(w,h,space)
-
-
+function drawgrid(x1,y1,space,w,h)
 	for i ,n in pairs(notes) do
 		for ii, s in pairs(notes[i]) do
 			local c = 
@@ -89,18 +95,18 @@ function drawgrid(w,h,space)
 			local x1 = 0
 			local y1 = 0
 			if ii  == 1 then
-				x0 = 20
-				y0 = 20+ (h + space)*(i-1)
-				x1 = 20+w 
-				y1 = 20+ (h + space)*(i-1)+h
+				x0 = w
+				y0 = h + (h + space)*(i-1)
+				x1 = w + w 
+				y1 = h + (h + space)*(i-1)+h
 			
 				
 			elseif ii > 1 then
 				
-				x0 = 20 + (w + space)*(ii-1)
-				y0 = 20+ (h + space)*(i-1)
-				x1 = 20+ (w + space)*(ii-1)+w 
-				y1 = 20+ (h + space)*(i-1)+h
+				x0 = w + (w + space)*(ii-1)
+				y0 = h + (h + space)*(i-1)
+				x1 = w + (w + space)*(ii-1)+w 
+				y1 = h + (h + space)*(i-1)+h
 				
 			end
 			local ishovering = false
