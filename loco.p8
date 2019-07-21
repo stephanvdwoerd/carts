@@ -2,6 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 18
 __lua__
 function _init()
+	t=0
 	cam={
 	x=0,
 	y=0
@@ -19,7 +20,8 @@ function _init()
 	acc=0.01,
 	drag=0.99,
 	a=0,
-	currentpoint=1
+	currentpoint=1,
+	tuff=0
 	
 	}
 demom=1
@@ -30,23 +32,35 @@ roughpoints={
 {x=100,y=10},
 {x=110,y=120},
 {x=-10,y=120},
+{x=-100,y=50}
 }
 roughcpoints={
 	{x=50,y=-30},
 	{x=150,y=70},
 	{x=70,y=180},
-	{x=-70,y=50},
+	{x=-100,y=170},
+	{x=-20,y=20}
 	}
+curvepoints={}
 trackpoints={ }
-railsinit()
+puffs={}
+--railsinit(20)
+inittrail(curvepoints,trackpoints,5,50,500)
 end
 
 function _update()
-
+	t+=1
 	camera(cam.x, cam.y)
 	cam.y= lerp(loco.y-64, cam.y, 0.96)
 	cam.x= lerp(loco.x-64, cam.x, 0.96)
 	
+	loco.tuff += abs(loco.spd / 4)
+
+	if loco.tuff > 1 and abs(loco.spd) >0.05  then
+		makepuff(loco.x +8*cos(1-loco.a+0.25) -6*xlayermult(loco.x),loco.y +8*sin(1-loco.a+0.25) -6*ylayermult(loco.y),0.33)
+		loco.tuff = 0
+		sfx(0)
+	end
 	
 	
 	
@@ -97,24 +111,39 @@ function _draw()
 	
 	
 	rails()
-	if loco.currentpoint+1 <= #trackpoints then
-		if abs( trackpoints[loco.currentpoint+1].x - loco.x )<3 and abs( trackpoints[loco.currentpoint+1].y - loco.y )<3then
-
+	if loco.spd >0 then
+		if loco.currentpoint+1 <= #trackpoints then
+			if abs( trackpoints[loco.currentpoint+1].x - loco.x )<1 and abs( trackpoints[loco.currentpoint+1].y - loco.y )<1then
+				loco.x = trackpoints[loco.currentpoint+1].x
+				loco.y = trackpoints[loco.currentpoint+1].y
 				loco.currentpoint+=1
-		end
-	else
+			end
+		else
 		
 			loco.currentpoint=1
+		end
 			
 		
-	end
+	elseif loco.spd<0 then
 	
+		if loco.currentpoint-1 > 0 then
+			if abs( trackpoints[loco.currentpoint].x - loco.x )<1 and abs( trackpoints[loco.currentpoint].y - loco.y )<1then
+				loco.x = trackpoints[loco.currentpoint].x
+				loco.y = trackpoints[loco.currentpoint].y
+				loco.currentpoint-=1
+			end
+		else
+			
+			loco.currentpoint=#trackpoints	
+		end
+	end
 	loco.a = trackpoints[loco.currentpoint].a
 	
 	--layerdraw(loco.x,loco.y,loco.layers,loco.w)
 	layerdrawr(loco.x,loco.y,loco.layersx,loco.layersy,loco.w,loco.a-0.25)
 	print(loco.a)
 	print(loco.currentpoint)
+	drawpuffs()
 end
 -->8
 --graphics
@@ -183,18 +212,22 @@ end
 
 
 -->8
-function railsinit()
+--rails
+--[[
+function railsinit(n)
 	for i,p in pairs(roughpoints) do
 		if i+1 <=  #roughpoints then
 			maketrackpart(p.x,p.y,roughpoints[i+1].x,roughpoints[i+1].y,
-			roughcpoints[i].x,roughcpoints[i].y,20,trackpoints)
+			roughcpoints[i].x,roughcpoints[i].y,n,trackpoints)
 		else
 			maketrackpart(p.x,p.y,roughpoints[1].x,roughpoints[1].y,
-			roughcpoints[i].x,roughcpoints[i].y,20,trackpoints)
+			roughcpoints[i].x,roughcpoints[i].y,n,trackpoints)
 		end
 	end
 end
+--]]
 --rails
+
 function rails()
 
 	
@@ -220,15 +253,87 @@ function rails()
 			
 			
 		--print(t.a)
-		line(t.x,t.y,nextx,nexty,1)
-		line(t.x+3*cos(t.a+0.25),t.y+3*sin(t.a+0.25)
-		,nextx+3*cos(t.a+0.25), nexty+3*sin(t.a+0.25),6)
+		line(t.x-4*cos(1-t.a),t.y-4*sin(1-t.a),t.x,t.y,4)
+		line(t.x+4*cos(1-t.a),t.y+4*sin(1-t.a),t.x,t.y,4)
+
+		--line(t.x,t.y,nextx,nexty,1)
+
+		line(t.x-2*cos(1-t.a),t.y-2*sin(1-t.a),nextx-2*cos(1-t.a),nexty-2*sin(1-t.a),5)
+		line(t.x+2*cos(1-t.a),t.y+2*sin(1-t.a),nextx+2*cos(1-t.a),nexty+2*sin(1-t.a),5)
+		--line(t.x+3*cos(t.a+0.25),t.y+3*sin(t.a+0.25)
+		--,nextx+3*cos(t.a+0.25), nexty+3*sin(t.a+0.25),6)
 
 		
 
-		line(t.x-3*cos(t.a+0.25),t.y-3*sin(t.a+0.25)
-		, nextx-3*cos(t.a+0.25), nexty-3*sin(t.a+0.25),6)
+		--line(t.x-3*cos(t.a+0.25),t.y-3*sin(t.a+0.25)
+		--, nextx-3*cos(t.a+0.25), nexty-3*sin(t.a+0.25),6)
+		
 	end
+end
+
+function inittrail(points,trackpoints,n1,n2,n3)
+    
+    for i = 1,n1 do 
+        if i == 1 then
+        add(points,
+            {x=0,y=0,cp={{x=0,y=0},{x=0,y=0}}}
+        )
+        elseif i >1 and i < n1 then
+            local x = n3 - rnd(n3)-(n3/2)
+            local y = n3 - rnd(n3)-(n3/2)
+           --x %= 128 
+        	--y %= 128
+            add(points,
+            {x=x,y=y,cp={{x=0,y=0},{x=0,y=0}}}
+        )
+		
+        end 
+    end
+
+    
+
+
+    for i,p in pairs(points) do
+        
+        if i == 1 then 
+            p.cp[1].x = p.x +rnd(140)-70
+            p.cp[1].y = p.y +rnd(140)-70
+            p.cp[2].x = points[i+1].x +rnd(140)-70
+            p.cp[2].y = points[i+1].y +rnd(140)-70
+            makecbcpoints(p.x,p.y,points[i+1].x,points[i+1].y,
+            p.cp[1].x,p.cp[1].y,p.cp[2].x,p.cp[2].y,n2,trackpoints)
+        end
+       if i >1 and i< #points then
+      
+          --  local ba = atan2(p.x-points[i-1].cp2.x,
+            --p.y-points[i-1].cp2.x)
+            local xdist = p.x-points[i-1].cp[2].x
+            local ydist = p.y-points[i-1].cp[2].y
+
+            p.cp[1].x = p.x + xdist
+			p.cp[1].y = p.y + ydist
+			
+            p.cp[2].x = points[i+1].x +rnd(140)-70
+            p.cp[2].y = points[i+1].y +rnd(140)-70
+			
+			makecbcpoints(p.x,p.y,points[i+1].x,points[i+1].y,
+            p.cp[1].x,p.cp[1].y,p.cp[2].x,p.cp[2].y,n2,trackpoints)
+        end
+        if i == #points then
+            local xdist = p.x-points[i-1].cp[2].x
+            local ydist = p.y-points[i-1].cp[2].y
+            local xdist2 = points[1].x-points[1].cp[1].x
+            local ydist2 = points[1].y-points[1].cp[1].y
+          
+            p.cp[1].x = p.x + xdist
+            p.cp[1].y = p.y + ydist
+            p.cp[2].x =  points[1].x + xdist2
+            p.cp[2].y =  points[1].y + ydist2
+            makecbcpoints(p.x,p.y,points[1].x,points[1].y,
+            p.cp[1].x,p.cp[1].y,p.cp[2].x,p.cp[2].y,n2,trackpoints)
+        end
+
+    end
 end
 
 function lv(v1,v2,t)
@@ -239,6 +344,10 @@ end
 function qbcvector(v1,v2,v3,t) 
     return  lv(lv(v1,v3,t), lv(v3,v2,t),t)
 end
+function cbcvector(v1,v2,v3,v4,t) 
+    return  lv(qbcvector(v1,v2,v3,t), qbcvector(v1,v2,v4,t),t)
+end
+
 --n = "smoothness"
 -- trackpoint contain {x=0,y=0,a=0},
 function maketrackpart(x1,y1,x2,y2,x3,y3,n,track)
@@ -248,12 +357,68 @@ function maketrackpart(x1,y1,x2,y2,x3,y3,n,track)
        --pset(qbcvector(x1,x2,x3,t),qbcvector(y1,y2,y3,t),c)
     end
 end
+function makecbcpoints(x1,y1,x2,y2,x3,y3,x4,y4,n,trackpoints)
+    for i = 1,n do 
+        local t = i/n
+        local x=cbcvector(x1,x2,x3,x4,t)
+        local y=cbcvector(y1,y2,y3,y4,t)
+        
+        add(trackpoints,
+        {x=x,
+        y=y} )
+    end
+end
 function drawqbc(x1,y1,x2,y2,x3,y3,n,c)
     for i = 1,n do 
         local t = i/n
        pset(qbcvector(x1,x2,x3,t),qbcvector(y1,y2,y3,t),c)
     end
 end
+-->8
+--puffypuff
+function makepuff(x1,y1,a)
+	add(puffs,
+		{
+			x=x1,
+			y=y1,
+			vx=cos(a)/4+rnd(0.1)-0.05,
+			vy=sin(a)/4+rnd(0.1)-0.05,
+			t=0,
+			mt=50+rnd(40)-20,
+			c=7,
+			ms=4+rnd(2)-1,
+			s=2
+		}
+	)
+end
+function drawpuffs()
+	for p in all(puffs) do
+		p.t+=1
+		local tp = p.t/p.mt
+		
+		p.x+=p.vx
+		p.y+=p.vy
+		if tp > 0.5 then
+			p.c =6
+		end
+		p.s =1+ flr( (p.ms) *tp)
+
+		if p.t > 40 then 
+			p.c =5
+		end
+
+		
+
+		circfill(p.x,p.y,p.s,p.c)
+		fillp()
+
+		if p.t > 50 then
+			del(puffs,p)
+		end
+	end
+end
+
+
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -300,13 +465,13 @@ __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000001111111111100000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000111111111000000000000000000000000000000000000000000000
 0dd1671671d000000000000000000000000000000000000000000000000000000000000001111111111100000000000000000000000000000000000000000000
 05dddddddd7000000000000100000000000000000000000000000000000000000000000001111111111100000000000110000000000000000000000000000000
 05dddddddd6066669796661116900000000000000000000000000000000000000000000001111111111100000000000110000000000000000000000000000000
 05dddddddd7000000000000100000000000000000000000000000000000000000000000001111111111100000000000110000000000000000000000000000000
 0dd1761761d000000000000000000000000000000000000000000000000000000000000001111111111100000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000001111111111100000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000111111111000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000d676d00000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000ddddd00000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000001ddd100000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -348,3 +513,5 @@ __map__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000008484000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 9595959595959595959595959595959500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+__sfx__
+000500000c6500a6500f6300563004630046300062002610006100360000600006000060000600006000060000600006000000000600000000000000000000000000000000000000000000000000000000000000
