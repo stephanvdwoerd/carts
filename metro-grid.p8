@@ -6,6 +6,8 @@ __lua__
 cam = {
     x = 0,
     y = 0,
+    tx = 0,
+    ty = 0,
     panning = false
 }
 
@@ -29,7 +31,7 @@ end
 
 function _update60()
     update_mouse()
-    update_pan()
+    update_cam()
 end
 
 function _draw()
@@ -89,16 +91,22 @@ end
 
 
 -- pan
-function update_pan()
-    cam.panning = btn(🅾️) and mouse.pressed
-    if cam.panning then
-        local diffx = mouse.x - mouse.lastx
-        local diffy = mouse.y - mouse.lasty
-        cam.x -= diffx
-        cam.y -= diffy
+function update_cam()
+    if btn(⬆️) then
+		cam.ty -= 10
+	end
+	if btn(⬇️) then
+		cam.ty += 10
+	end
+	if btn(➡️) then
+		cam.tx += 10
+	end
+	if btn(⬅️) then
+		cam.tx -= 10
     end
-
-
+    
+    cam.x = lerp(cam.tx, cam.x, 0.95)
+    cam.y = lerp(cam.ty, cam.y, 0.95)
     camera(cam.x, cam.y)
 end
 
