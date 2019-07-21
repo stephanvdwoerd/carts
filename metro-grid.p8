@@ -52,7 +52,9 @@ function init_grid()
         for y=0,20 do
             add(grid, {
                 x = x * squaresize,
-                y = y * squaresize
+                y = y * squaresize,
+                x_index = x,
+                y_index = y
             })
         end
     end
@@ -109,12 +111,7 @@ function update_mouse()
     end
 
     if mouse.just_released then
-        add(sequencers, {
-            x = mouse.drag_start_square.x,
-            y = mouse.drag_start_square.y,
-            endx = mouse.hovering_square.x + squaresize,
-            endy = mouse.hovering_square.y + squaresize
-        })
+        add_sequencer()
     end
 
     if not mouse.pressed then
@@ -157,9 +154,54 @@ end
 -- sequencers
 function draw_sequencers()
     for s in all(sequencers) do
-        rectfill(s.x, s.y, s.endx, s.endy, 5)
+        -- background
+        rectfill(s.x, s.y, s.endx, s.endy, 6)
+
+        -- the actual pads
+        local padding_x = 0
+        local padding_y = squaresize
+
+        for pad_x=0,s.pads_x do
+            for pad_y=0,s.pads_y-1 do
+                rect(s.x+padding_x+pad_x*squaresize, s.y+padding_y+pad_y*squaresize,
+                     s.x+padding_x+pad_x*squaresize+squaresize, s.y+padding_y+pad_y*squaresize+squaresize, 5)
+                
+            end
+        end
+        
+
+        -- control bar
+        rectfill(s.x, s.y, s.endx, s.y+10, 14)
+        line(s.x, s.y + 10, s.endx, s.y+10, 2)
+    
+        -- connection point
+        rect(s.endx - 6, s.y + 3, s.endx - 3, s.y + 6, 2)
+        rectfill(s.endx - 5, s.y + 4, s.endx - 4, s.y + 5, 1)
+        pset(s.endx - 5, s.y + 4, 0)
+
+
+        -- underline / shadow
+        -- line(s.x, s.y+squaresize, s.endx, s.y+squaresize)
         line(s.x, s.endy, s.endx, s.endy, 1)
+
+        -- side lines
+        -- line(s.x, s.endy, s.endx, s.endy, 1)
+
+
     end
+end
+
+function add_sequencer()
+    local sequencer = {
+        x = mouse.drag_start_square.x,
+        y = mouse.drag_start_square.y,
+        endx = mouse.hovering_square.x + squaresize,
+        endy = mouse.hovering_square.y + squaresize,
+        pads_x = mouse.hovering_square.x_index - mouse.drag_start_square.x_index,
+        pads_y = mouse.hovering_square.y_index - mouse.drag_start_square.y_index
+    }
+
+    add(sequencers, sequencer)
 end
 
 
@@ -171,4 +213,3 @@ __gfx__
 17777100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 16611100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 11110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00007000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
