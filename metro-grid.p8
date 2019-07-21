@@ -8,7 +8,8 @@ cam = {
     y = 0,
     tx = 0,
     ty = 0,
-    panning = false
+    spd = 2,
+    margin = 10
 }
 
 mouse = {
@@ -92,24 +93,26 @@ end
 
 -- pan
 function update_cam()
-    if btn(⬆️) then
-		cam.ty -= 10
-	end
-	if btn(⬇️) then
-		cam.ty += 10
-	end
-	if btn(➡️) then
-		cam.tx += 10
-	end
-	if btn(⬅️) then
-		cam.tx -= 10
+    mouse.x = stat(32) + cam.x
+    mouse.y = stat(33) + cam.y
+   
+    if mouse.x >= 128 - cam.margin + cam.x then
+     cam.tx += cam.spd
+    elseif mouse.x <= cam.margin + cam.x then
+     cam.tx -= cam.spd
     end
-    
-    cam.x = lerp(cam.tx, cam.x, 0.95)
-    cam.y = lerp(cam.ty, cam.y, 0.95)
+   
+    if mouse.y >= 128 - cam.margin + cam.y then
+     cam.ty += cam.spd
+    elseif mouse.y <= cam.margin + cam.y then
+     cam.ty -= cam.spd
+    end
+   
+    cam.x = lerp(cam.tx, cam.x, 0.9)
+    cam.y = lerp(cam.ty, cam.y, 0.9)
+   
     camera(cam.x, cam.y)
-end
-
+   end
 
 
 
