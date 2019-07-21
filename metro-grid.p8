@@ -39,7 +39,9 @@ end
 function _draw()
     cls()
     draw_grid()
+    draw_sequencers()
     draw_mouse()
+    
 end
 
 
@@ -58,14 +60,12 @@ end
 
 
 function draw_grid()
-    local hovering_square
-
     for point in all(grid) do
         -- in rect, using >= to include the first pixel as well
         local hover = mouse_in_square(point)
 
         if hover then 
-            hovering_square = point
+            mouse.hovering_square = point
             rectfill(point.x,point.y,point.x+squaresize,point.y+squaresize,1)
         else 
             pset(point.x,point.y, 1)
@@ -73,12 +73,12 @@ function draw_grid()
     end
 
     -- border of grid
-    rect(grid[1].x,grid[1].y, grid[#grid -1].x + squaresize, grid[#grid-1].y + squaresize,5)
+    rect(grid[1].x,grid[1].y, grid[#grid -1].x + squaresize, grid[#grid-1].y + squaresize,1)
 
     -- new sequencer
     if mouse.drag_start_square then
         rect(mouse.drag_start_square.x,mouse.drag_start_square.y,
-                 hovering_square.x + squaresize, hovering_square.y + squaresize, 6)
+             mouse.hovering_square.x + squaresize, mouse.hovering_square.y + squaresize, 6)
         
     end
 end
@@ -97,6 +97,7 @@ function update_mouse()
     mouse.x = stat(32) + cam.x
     mouse.y = stat(33) + cam.y
     mouse.just_pressed = (not mouse.pressed) and (stat(34) == 1)
+    mouse.just_released = (stat(34) == 0) and mouse.pressed
     mouse.pressed = stat(34) == 1
 
     if mouse.just_pressed then
@@ -105,6 +106,15 @@ function update_mouse()
                 mouse.drag_start_square = square
             end
         end
+    end
+
+    if mouse.just_released then
+        add(sequencers, {
+            x = mouse.drag_start_square.x - 1,
+            y = mouse.drag_start_square.y - 1,
+            endx = mouse.hovering_square.x + squaresize,
+            endy = mouse.hovering_square.y + squaresize
+        })
     end
 
     if not mouse.pressed then
@@ -144,6 +154,14 @@ function update_cam()
 end
 
 
+-- sequencers
+function draw_sequencers()
+    for s in all(sequencers) do
+        
+        rectfill(s.x, s.y, s.endx, s.endy, 5)
+        line(s.x, s.endy, s.endx, s.endy, 1)
+    end
+end
 
 
 __gfx__
