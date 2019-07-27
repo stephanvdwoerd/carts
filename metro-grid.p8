@@ -21,6 +21,15 @@ mouse = {
     pressed = false
 }
 
+samples={
+    {name="CLCK",c=10},
+    {name="KICK",c=9},
+    {name="SNRE",c=12},
+    {name="HHAT",c=11},
+    {name="MEL1",c=14},
+    {name="MEL2",c=13},
+}
+
 sequencers = {}
 current_sequencer = nil
 grid = {}
@@ -37,6 +46,7 @@ function _update60()
     update_cam()
 
     for s in all(sequencers) do
+        s:update_controls()
         s:tick()
     end
 end
@@ -68,11 +78,23 @@ function init_grid()
     end
 end
 
+function hovering_over_sequencer()
+    for s in all(sequencers) do
+        if mouse.x >= s.x  and mouse.x < s.endx
+        and mouse.y >= s.y  and mouse.y < s.endy
+        then
+            return true
+        end
+    end
+
+    return false
+end
+
 
 function draw_grid()
     for point in all(grid) do
         -- in rect, using >= to include the first pixel as well
-        local hover = mouse_in_square(point)
+        local hover = mouse_in_square(point) and not hovering_over_sequencer()
 
         if hover then 
             mouse.hovering_square = point
@@ -110,7 +132,7 @@ function update_mouse()
     mouse.just_released = (stat(34) == 0) and mouse.pressed
     mouse.pressed = stat(34) == 1
 
-    if mouse.just_pressed then
+    if mouse.just_pressed and not hovering_over_sequencer() then
         for square in all(grid) do
             if mouse_in_square(square) then
                 mouse.drag_start_square = square
@@ -118,7 +140,7 @@ function update_mouse()
         end
     end
 
-    if mouse.just_released then
+    if mouse.just_released and not hovering_over_sequencer() then
         add_sequencer()
     end
 
@@ -183,11 +205,12 @@ function add_sequencer()
         current_x = 1,
         current_y = 1,
         beat = 0,
-        finished = false, 
-
+        paused = true,
+        finished = false,
+        next_sequencer = 2,
 
         tick = function (self) 
-            if not self.finished then
+            if not self.finished and not self.paused then
                 self.beat += 1
 
                 if self.beat == 16 then
@@ -200,15 +223,37 @@ function add_sequencer()
                             self.current_y += 1
                         else
                             self.finished = true -- next
+                            sequencers[self.next_sequencer].paused = false
+                            sequencers[self.next_sequencer].finished = false
+                            sequencers[self.next_sequencer].current_x = 1
+                            sequencers[self.next_sequencer].current_y = 1
+                            sequencers[self.next_sequencer].beat = 0
                         end
                     end
 
-                    sfx(self.notes[self.current_x][self.current_y][1])
+                    for fx in all(self.notes[self.current_x][self.current_y]) do
+                        sfx(fx)
+                    end
                 end
             end
         end,    
 
+        
+        update_controls = function(self)
+            if self:hovering_over_play_pause() and mouse.just_pressed then
+                self.paused = not self.paused
+            end
+        end,
+
+
+        hovering_over_play_pause = function(s)
+            return mouse.x >= s.x + 2  and mouse.x < s.x + 16
+                and mouse.y >= s.endy - 10 and mouse.y < s.endy
+        end,
+
+
         draw = function (s) 
+          
 
             -- background
             rectfill(s.x, s.y, s.endx, s.endy, 1)
@@ -220,29 +265,49 @@ function add_sequencer()
             for pad_x=0,s.pads_x do
                 for pad_y=0,s.pads_y do
                     local c =  (pad_x == s.current_x - 1 and pad_y == s.current_y - 1) and 7 or 13
-                    rect(s.x+padding_x+pad_x*squaresize + 2 , s.y+padding_y+pad_y*squaresize + 2 ,
-                        s.x-padding_x+pad_x*squaresize+squaresize - 2, s.y+padding_y+pad_y*squaresize+squaresize - 2, c)
+                    local startx = s.x+padding_x+pad_x*squaresize
+                    local starty = s.y+padding_y+pad_y*squaresize
+                    local endx = s.x-padding_x+pad_x*squaresize+squaresize
+                    local endy = s.y+padding_y+pad_y*squaresize+squaresize
+                    rect(startx + 2, starty + 2, endx - 2, endy - 2, c)
                     
+                    for i, note in pairs(s.notes[pad_x + 1][pad_y + 1]) do
+                        pset(startx + 3 + (i - 1) * 2, starty + 3, samples[note].c)
+                    end
                 end
             end
 
             -- control bar
             -- rectfill(s.x, s.y, s.endx, s.y+10, 14)
             -- line(s.x, s.y + 8, s.endx, s.y+8, 2)
-        
-            -- connection point
-            spr(2,s.endx - 6, s.endy-6)
+
+            -- play/pause button
+            if (s:hovering_over_play_pause()) pal(6, 2)
+            spr(s.paused and 3 or 4, s.x + 4, s.endy - 6)
+            pal()
             
+
+            -- connection line
+            if s.next_sequencer and sequencers[s.next_sequencer] then 
+                line(s.endx - 2, s.endy - 4, 
+                    sequencers[s.next_sequencer].x, 
+                    sequencers[s.next_sequencer].y, 7)
+            end
+        
+
+            -- connection point
+            spr(2,s.endx - 7, s.endy - 7)
 
 
             -- underline / shadow
             -- line(s.x, s.y+squaresize, s.endx, s.y+squaresize)
             line(s.x, s.endy, s.endx, s.endy, 1)
 
-            print(s.beat, cam.x, cam.y, 7)
-            print(s.current_x, cam.x, cam.y + 10, 7)
-            print(s.current_y, cam.x, cam.y + 20, 7)
-            print(s.notes[s.current_x][s.current_y][1], cam.x, cam.y + 30, 7)
+            -- print(s.beat, cam.x, cam.y, 7)
+            -- print(s.current_x, cam.x, cam.y + 10, 7)
+            -- print(s.current_y, cam.x, cam.y + 20, 7)
+            -- print(samples[2].c, cam.x, cam.y + 30, 7)
+            -- print(hovering_over_sequencer(), cam.x, cam.y + 40, 7)
 
             -- side lines
             -- line(s.x, s.endy, s.endx, s.endy, 1)
@@ -254,7 +319,7 @@ function add_sequencer()
     for x=0,pads_x do
         local row = {}
         for y=0,pads_y do
-            add(row, {flr(rnd(3))})
+            add(row, {ceil(rnd(5)), ceil(rnd(5))})
         end
         add(sequencer.notes, row)
     end
@@ -264,14 +329,18 @@ end
 
 
 __gfx__
-11000000005500001111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-17100000555500001111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-1771000055550000112d110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-177710000000000011d2110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+11000000005500001111100060000000606000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+17100000555500001111110066000000606000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+17710000555500001166110060000000606000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+1777100000000000116d110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 17777100000000001111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 16611100000000001111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 11110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-000100002305000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0010000000010176100a0100e01013010180100001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011000003055500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011000001825500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 011000000c05300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011000002465500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010100001861500200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+01100000180551b0551f0552205526055000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+01100000180501b0501d0502105027050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
